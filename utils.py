@@ -39,7 +39,7 @@ def get_output_file(index, output_dir=None, extension=".out"):
 
 
 # return the name of the output file
-def get_output_join_file(output_dir=None, extension=".out"):
+def get_output_join_file(output_dir=None, extension=".csv"):
     if not (output_dir is None):
         return output_dir + "/output" + extension
     return default_output_dir + "/output" + extension
