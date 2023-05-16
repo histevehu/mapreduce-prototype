@@ -5,7 +5,7 @@ from mapreduce import MapReduce
 
 class passenger_analysis(MapReduce):
     def __init__(self, input_dir, output_dir, n_mappers, n_reducers):
-        MapReduce.__init__(self, input_dir, output_dir, n_mappers, n_reducers, True)
+        MapReduce.__init__(self, input_dir, output_dir, n_mappers, n_reducers, clean=True)
 
     def mapper(self, key, value):
         """

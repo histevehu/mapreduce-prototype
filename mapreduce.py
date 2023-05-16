@@ -37,7 +37,8 @@ class MapReduce(object):
         self.n_reducers = n_reducers
         self.clean = clean
         self.file_handler = FileHandler(utils.get_input_file(self.input_dir), self.output_dir)
-        self.file_handler.split_file(self.n_mappers)
+        # Default is to split the file using a line count-based calculation
+        self.file_handler.split_file_line(self.n_mappers)
 
     def mapper(self, key, value):
         """
@@ -184,9 +185,9 @@ class FileHandler(object):
         file_split.write(str(index) + "\n")
         return file_split
 
-    def is_on_split_position(self, character, index, split_size, current_split):
+    def is_on_split_position_char(self, character, index, split_size, current_split):
         """
-        Check if it is the right time to split.
+        Check if it is the right time to split.(Calculation based on number of characters)
         i.e: character is a space and the limit has been reached.
 
         :param character: the character we are currently on.
@@ -196,9 +197,19 @@ class FileHandler(object):
         """
         return index > split_size * current_split + 1 and character.isspace()
 
-    def split_file(self, number_of_splits):
+    def is_on_split_position_line(self, index, split_size, current_split):
         """
-        Split a file into multiple files.
+        Check if it is the right time to split.(Calculation based on number of lines)
+
+        :param index: the index we are currently on.
+        :param split_size: the lines of each single split.
+        :param current_split: the split we are currently on.
+        """
+        return index > split_size * current_split + 1
+
+    def split_file_char(self, number_of_splits):
+        """
+        Split a file into multiple files.(Calculation based on number of characters)
 
         Note: this has not been optimized to avoid overhead.
 
@@ -213,12 +224,36 @@ class FileHandler(object):
         current_split_unit = self.initiate_file_split(current_split_index, index)
         for character in file_content:
             current_split_unit.write(character)
-            if self.is_on_split_position(character, index, unit_size, current_split_index):
+            if self.is_on_split_position_char(character, index, unit_size, current_split_index):
                 current_split_unit.close()
                 current_split_index += 1
                 current_split_unit = self.initiate_file_split(current_split_index, index)
             index += 1
         current_split_unit.close()
+
+    def split_file_line(self, number_of_splits):
+        """
+        Split a file into multiple files.(Calculation based on number of lines)
+
+        Note: this has not been optimized to avoid overhead.
+
+        :param number_of_splits: the number of chunks to split the file into.
+        """
+        with open(self.input_file_path, "r") as input_file:
+            # Count the number of lines in the input file
+            line_count = sum(1 for line in input_file)
+        unit_size = line_count // number_of_splits + 1
+        (index, current_split_index) = (1, 1)
+        current_split_unit = self.initiate_file_split(current_split_index, index)
+        with open(self.input_file_path, "r") as input_file:
+            for line in input_file:
+                current_split_unit.write(line)
+                if self.is_on_split_position_line(index, unit_size, current_split_index):
+                    current_split_unit.close()
+                    current_split_index += 1
+                    current_split_unit = self.initiate_file_split(current_split_index, index)
+                index += 1
+            current_split_unit.close()
 
     def join_files(self, number_of_files, clean=False, sort=True, decreasing=True):
         """

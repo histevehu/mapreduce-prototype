@@ -25,7 +25,7 @@ def get_input_split_file(index, input_dir=None, extension=".csv"):
 
 
 # return the name of the temporary map file corresponding to the given index
-def get_temp_map_file(index, reducer, output_dir=None, extension=".csv"):
+def get_temp_map_file(index, reducer, output_dir=None, extension=".tmp"):
     if not (output_dir is None):
         return output_dir + "/map_data_" + str(index) + "-" + str(reducer) + extension
     return default_output_dir + "/map_data_" + str(index) + "-" + str(reducer) + extension
